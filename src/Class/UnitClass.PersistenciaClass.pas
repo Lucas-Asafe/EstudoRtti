@@ -4,13 +4,15 @@ interface
 
 uses
   DB, System.Classes, System.Rtti, sysUtils, System.Generics.Collections,
-  UnitClass.Helper.RTTI, UnitClass.CustomAttributes, utils.str,
-  Controller.ConnectionFactory, FireDAC.Comp.Client;
+  UnitClass.Helper.RTTI, UnitClass.CustomAttributes, utils.Str, Controller.ConnectionFactory,
+  FireDAC.Comp.Client;
 
 type
   TEditMode = (emInsert, emEdit, emNenhum);
 
   EPersistenciaClass = class(Exception);
+
+  TProcPersistencia = procedure(classe: TObject; UsarTransacao: Boolean = False) of object;
 
   TPersistenciaClass = class
   private
@@ -33,13 +35,15 @@ type
   public
     function GetPKField(classe: TObject): TRttiProperty;
     procedure GetValoresFromDataset(Dataset: TDataSet; classe: TObject);
-    constructor Create;
     procedure Insere(classe: TObject; UsarTransacao: Boolean = False);
     procedure Altere(classe: TObject; UsarTransacao: Boolean = False);
     procedure Delete(classe: TObject; UsarTransacao: Boolean = False);
+    procedure ExecuteProcPersistencia(PLista: TObjectList<TObject>;
+      ProcPersistencia: TProcPersistencia);
     procedure GetLista<T: class, constructor>(out lista: TObjectList<T>; condicaoSQL: string = '');
     procedure Get<T: class, constructor>(out objeto: T; PValorChave: Variant);
     function GetListaDoDataSet<T: class, constructor>(Dataset: TDataSet): TObjectList<T>;
+    constructor Create;
   end;
 
 var
@@ -101,8 +105,7 @@ begin
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
       if (RttiProp.getAttribute(ADetalhe) <> nil) then
-        for objeto in TObjectList<TObject>(RttiProp.GetValue(classe).AsObject) do
-          Insere(objeto);
+        ExecuteProcPersistencia(TObjectList<TObject>(RttiProp.GetValue(classe).AsObject), Insere);
 
     CommitTransacao;
   except
@@ -122,6 +125,7 @@ begin
   FSQL := Format('UPDATE %s SET %s WHERE %s;', [FTabela, valores, FIndices]);
 
   try
+//    FConnection.Transaction.Active := (UsarTransacao) and (not FConnection.Transaction.Active); // testar
     if (UsarTransacao) and (not FConnection.Transaction.Active) then
       FConnection.Transaction.StartTransaction;
 
@@ -129,8 +133,7 @@ begin
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
       if (RttiProp.getAttribute(ADetalhe) <> nil) then
-        for objeto in TObjectList<TObject>(RttiProp.GetValue(classe).AsObject) do
-          Altere(objeto);
+        ExecuteProcPersistencia(TObjectList<TObject>(RttiProp.GetValue(classe).AsObject), Altere);
 
     CommitTransacao;
   except
@@ -139,8 +142,6 @@ begin
 end;
 
 procedure TPersistenciaClass.Delete(classe: TObject; UsarTransacao: Boolean = False);
-var
-  objeto: TObject;
 begin
   FTabela := getNomeTabela(classe);
   FIndices := getIndicePK(classe);
@@ -154,13 +155,21 @@ begin
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
       if (RttiProp.getAttribute(ADetalhe) <> nil) then
-        for objeto in TObjectList<TObject>(RttiProp.GetValue(classe).AsObject) do
-          Delete(objeto);
+        ExecuteProcPersistencia(TObjectList<TObject>(RttiProp.GetValue(classe).AsObject), Delete);
 
     CommitTransacao;
   except
     raise EPersistenciaClass.Create('Erro ao excluir registro no banco de dados.');
   end;
+end;
+
+procedure TPersistenciaClass.ExecuteProcPersistencia(PLista: TObjectList<TObject
+  >; ProcPersistencia: TProcPersistencia);
+var
+  objeto: TObject;
+begin
+  for objeto in PLista do
+    ProcPersistencia(objeto);
 end;
 
 procedure TPersistenciaClass.Get<T>(out objeto: T; PValorChave: Variant);
