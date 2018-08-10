@@ -4,7 +4,7 @@ interface
 
 uses
   DB, System.Classes, System.Rtti, sysUtils, System.Generics.Collections,
-  UnitClass.Helper.RTTI, UnitClass.CustomAttributes, utils.str, Utils.Validacao,
+  UnitClass.Helper.RTTI, UnitClass.CustomAttributes, utils.str,
   Controller.ConnectionFactory, FireDAC.Comp.Client;
 
 type
@@ -100,7 +100,7 @@ begin
     FConnection.ExecSQL(FSQL.Replace('"', '', [rfReplaceAll]));
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
-      if IsDetailList(RttiProp, classe) then
+      if (RttiProp.getAttribute(ADetalhe) <> nil) then
         for objeto in TObjectList<TObject>(RttiProp.GetValue(classe).AsObject) do
           Insere(objeto);
 
@@ -128,7 +128,7 @@ begin
     FConnection.ExecSQL(FSQL.Replace('"', '', [rfReplaceAll]));
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
-      if IsDetailList(RttiProp, classe) then
+      if (RttiProp.getAttribute(ADetalhe) <> nil) then
         for objeto in TObjectList<TObject>(RttiProp.GetValue(classe).AsObject) do
           Altere(objeto);
 
@@ -153,7 +153,7 @@ begin
     FConnection.ExecSQL(FSQL.Replace('"', '', [rfReplaceAll]));
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
-      if IsDetailList(RttiProp, classe) then
+      if (RttiProp.getAttribute(ADetalhe) <> nil) then
         for objeto in TObjectList<TObject>(RttiProp.GetValue(classe).AsObject) do
           Delete(objeto);
 

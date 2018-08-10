@@ -8,38 +8,39 @@ uses
 type
   TValidador = class
   public
-    class procedure validarClasse(classe: TObject; e: TStrings); static;
+    class procedure ValidarClasse(classe: TObject; e: TStrings); static;
   end;
 
 implementation
 
 var
-  contexto    : TRTTIContext;
-  tipo        : TRttiType;
-  propriedade : TRTTIProperty;
-  atributo    : TCustomAttribute;
+  contexto: TRTTIContext;
+  tipo: TRttiType;
+  propriedade: TRTTIProperty;
+  atributo: TCustomAttribute;
 
-class procedure TValidador.validarClasse(classe: TObject; e: TStrings);
+class procedure TValidador.ValidarClasse(classe: TObject; e: TStrings);
 begin
   e.Clear;
-  contexto:=TRttiContext.Create;
-  tipo:=contexto.GetType(classe.ClassType);
+  contexto := TRttiContext.Create;
+  tipo := contexto.GetType(classe.ClassType);
 
   for propriedade in tipo.GetProperties do
   begin
 
-    if propriedade.getAttribute(ANotNull)<>nil then
+    if propriedade.getAttribute(ANotNull) <> nil then
     begin
-      if (propriedade.GetValue(classe).ToString='') then
-          e.Add('O Campo '+ propriedade.Name+' Não foi informado!');
+      if (propriedade.GetValue(classe).ToString = '') then
+        e.Add('O Campo ' + propriedade.Name + ' Não foi informado!');
 
-      if (propriedade.GetValue(classe).ToString='0') then
-        e.Add('O Campo '+ propriedade.Name+' Não pode ser Zero!');
+      if (propriedade.GetValue(classe).ToString = '0') then
+        e.Add('O Campo ' + propriedade.Name + ' Não pode ser Zero!');
 
-      if (propriedade.GetValue(classe).ToString='30/12/1899') then
-        e.Add('É obrigatório informar uma data válida para '+propriedade.Name);
+      if (propriedade.GetValue(classe).ToString = '30/12/1899') then
+        e.Add('É obrigatório informar uma data válida para ' + propriedade.Name);
     end;
   end;
 end;
 
 end.
+

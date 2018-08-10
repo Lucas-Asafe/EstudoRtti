@@ -14,7 +14,6 @@ uses
   UnitCliente.Frm in 'View\UnitCliente.Frm.pas' {Form3},
   Controller.ConnectionFactory in 'Controller\Controller.ConnectionFactory.pas',
   Utils.Str in 'Utils\Utils.Str.pas',
-  Utils.Validacao in 'Utils\Utils.Validacao.pas',
   UnitClass.Helper.RTTI in 'Class\Helper\UnitClass.Helper.RTTI.pas',
   Utils.Directory in 'Utils\Utils.Directory.pas';
 

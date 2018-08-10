@@ -142,7 +142,7 @@ begin
   C := TCliente.Create;
 
   TFactoryClass.getClasseDoForm(Self, C);
-  TValidador.validarClasse(C, ListBox1.Items);
+  TValidador.ValidarClasse(C, ListBox1.Items);
 
   if ListBox1.Items.Count > 0 then
     raise Exception.Create('Encontrado Erros de preenchimento!');
