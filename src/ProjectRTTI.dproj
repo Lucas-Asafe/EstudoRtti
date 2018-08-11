@@ -125,6 +125,7 @@
         <DCCReference Include="Utils\Utils.Str.pas"/>
         <DCCReference Include="Class\Helper\UnitClass.Helper.RTTI.pas"/>
         <DCCReference Include="Utils\Utils.Directory.pas"/>
+        <DCCReference Include="Model\UnitTelefone.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

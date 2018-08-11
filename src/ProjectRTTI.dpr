@@ -15,7 +15,8 @@ uses
   Controller.ConnectionFactory in 'Controller\Controller.ConnectionFactory.pas',
   Utils.Str in 'Utils\Utils.Str.pas',
   UnitClass.Helper.RTTI in 'Class\Helper\UnitClass.Helper.RTTI.pas',
-  Utils.Directory in 'Utils\Utils.Directory.pas';
+  Utils.Directory in 'Utils\Utils.Directory.pas',
+  UnitTelefone in 'Model\UnitTelefone.pas';
 
 {$R *.res}
 
