@@ -11,7 +11,7 @@ uses
   UnitDataModule in 'Controller\UnitDataModule.pas' {DM: TDataModule},
   UnitRTTIExport in 'Controller\UnitRTTIExport.pas',
   UnitCliente in 'Model\UnitCliente.pas',
-  UnitCliente.Frm in 'View\UnitCliente.Frm.pas' {Form3},
+  UnitCliente.Frm in 'View\UnitCliente.Frm.pas' {frmCadastroCliente},
   Controller.ConnectionFactory in 'Controller\Controller.ConnectionFactory.pas',
   Utils.Str in 'Utils\Utils.Str.pas',
   UnitClass.Helper.RTTI in 'Class\Helper\UnitClass.Helper.RTTI.pas',
@@ -23,6 +23,6 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TDM, DM);
-  Application.CreateForm(TForm3, Form3);
+  Application.CreateForm(TfrmCadastroCliente, frmCadastroCliente);
   Application.Run;
 end.

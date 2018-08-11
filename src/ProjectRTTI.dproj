@@ -118,7 +118,7 @@
         <DCCReference Include="Controller\UnitRTTIExport.pas"/>
         <DCCReference Include="Model\UnitCliente.pas"/>
         <DCCReference Include="View\UnitCliente.Frm.pas">
-            <Form>Form3</Form>
+            <Form>frmCadastroCliente</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="Controller\Controller.ConnectionFactory.pas"/>

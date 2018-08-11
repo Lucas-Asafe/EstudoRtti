@@ -10,7 +10,7 @@ uses
   UnitClass.FactoryForm, UnitBase.Frm, UnitRTTIExport;
 
 type
-  TForm3 = class(TFormBase)
+  TfrmCadastroCliente = class(TFormBase)
     edCodigo: TEdit;
     edNome: TEdit;
     edDocumento: TEdit;
@@ -31,6 +31,10 @@ type
     Edit1: TEdit;
     Button1: TButton;
     Button2: TButton;
+    grdTelefones: TStringGrid;
+    lbl1: TLabel;
+    edtTelefone: TEdit;
+    btn1: TButton;
     procedure btnSalvarClick(Sender: TObject);
     procedure btnCancelarClick(Sender: TObject);
     procedure btnNovoClick(Sender: TObject);
@@ -42,6 +46,7 @@ type
     procedure Edit1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure btn1Click(Sender: TObject);
   private
     FClientes: TClientes;
     FPercistenceClass: TPersistenciaClass;
@@ -52,7 +57,7 @@ type
   end;
 
 var
-  Form3: TForm3;
+  frmCadastroCliente: TfrmCadastroCliente;
 
 implementation
 
@@ -61,7 +66,7 @@ implementation
 uses
   UnitClass.FactoryClass;
 
-procedure TForm3.atualizaGrid(selRow: Integer = 1);
+procedure TfrmCadastroCliente.atualizaGrid(selRow: Integer = 1);
 var
   c: TCliente;
 begin
@@ -92,25 +97,31 @@ begin
 
 end;
 
-function TForm3.getRegistroFromClienteList(LinhaGrid: Integer): TCliente;
+function TfrmCadastroCliente.getRegistroFromClienteList(LinhaGrid: Integer): TCliente;
 begin
   Result := TCliente(StringGrid.Objects[0, LinhaGrid]);
 end;
 
-procedure TForm3.btnCancelarClick(Sender: TObject);
+procedure TfrmCadastroCliente.btn1Click(Sender: TObject);
+begin
+  grdTelefones.Cols[0].Add('0');
+  grdTelefones.Cols[1].Add(edtTelefone.Text);
+end;
+
+procedure TfrmCadastroCliente.btnCancelarClick(Sender: TObject);
 begin
   inherited;
   TFactoryForm.setFormFromClasse(Self, getRegistroFromClienteList(StringGrid.Row));
 end;
 
-procedure TForm3.btnEditarClick(Sender: TObject);
+procedure TfrmCadastroCliente.btnEditarClick(Sender: TObject);
 begin
   inherited;
   edNome.SetFocus;
   edNome.SelectAll;
 end;
 
-procedure TForm3.btnExcluirClick(Sender: TObject);
+procedure TfrmCadastroCliente.btnExcluirClick(Sender: TObject);
 var
   c: TCliente;
   i: Integer;
@@ -123,7 +134,7 @@ begin
   atualizaGrid(i);
 end;
 
-procedure TForm3.btnNovoClick(Sender: TObject);
+procedure TfrmCadastroCliente.btnNovoClick(Sender: TObject);
 begin
   inherited;
   edCodigo.Text := '0';
@@ -134,7 +145,7 @@ begin
   StringGrid.Row := StringGrid.RowCount - 1;
 end;
 
-procedure TForm3.btnSalvarClick(Sender: TObject);
+procedure TfrmCadastroCliente.btnSalvarClick(Sender: TObject);
 var
   C: TCliente;
 begin
@@ -160,19 +171,19 @@ begin
   inherited;
 end;
 
-procedure TForm3.Button1Click(Sender: TObject);
+procedure TfrmCadastroCliente.Button1Click(Sender: TObject);
 begin
   inherited;
   DM.gerarRelatorio(FClientes);
 end;
 
-procedure TForm3.Button2Click(Sender: TObject);
+procedure TfrmCadastroCliente.Button2Click(Sender: TObject);
 begin
   inherited;
   TExport.exportarLista<TCliente>(FClientes);
 end;
 
-procedure TForm3.Edit1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TfrmCadastroCliente.Edit1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   inherited;
   if Key = VK_RETURN then
@@ -182,20 +193,20 @@ begin
   end;
 end;
 
-procedure TForm3.FormCreate(Sender: TObject);
+procedure TfrmCadastroCliente.FormCreate(Sender: TObject);
 begin
   FClientes := TClientes.Create;
   FPercistenceClass := TPersistenciaClass.Create;
 end;
 
-procedure TForm3.FormShow(Sender: TObject);
+procedure TfrmCadastroCliente.FormShow(Sender: TObject);
 begin
   inherited;
   FPercistenceClass.GetLista<TCliente>(FClientes);
   atualizaGrid;
 end;
 
-procedure TForm3.StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+procedure TfrmCadastroCliente.StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 begin
   if StringGrid.Objects[0, ARow] <> nil then
     TFactoryForm.setFormFromClasse(Self, getRegistroFromClienteList(ARow));

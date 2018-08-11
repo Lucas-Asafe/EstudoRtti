@@ -1,7 +1,9 @@
-inherited Form3: TForm3
+inherited frmCadastroCliente: TfrmCadastroCliente
   ActiveControl = Edit1
-  Caption = 'Form3'
+  Caption = 'Cadastro de Clientes'
+  ClientWidth = 776
   OnCreate = FormCreate
+  ExplicitWidth = 792
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel [0]
@@ -64,7 +66,7 @@ inherited Form3: TForm3
     AlignWithMargins = True
     Left = 3
     Top = 3
-    Width = 440
+    Width = 770
     Height = 19
     Align = alTop
     Caption = 'Busca: Tabela Clientes'
@@ -75,6 +77,13 @@ inherited Form3: TForm3
     Font.Style = []
     ParentFont = False
     ExplicitWidth = 158
+  end
+  object lbl1: TLabel [9]
+    Left = 444
+    Top = 165
+    Width = 42
+    Height = 13
+    Caption = 'Telefone'
   end
   inherited btnCancelar: TButton
     Top = 330
@@ -88,11 +97,13 @@ inherited Form3: TForm3
   end
   inherited Panel1: TPanel
     Top = 408
+    Width = 776
     Height = 72
     TabOrder = 10
     ExplicitTop = 408
     ExplicitHeight = 72
     inherited ListBox1: TListBox
+      Width = 758
       Height = 54
       ExplicitHeight = 54
     end
@@ -114,6 +125,7 @@ inherited Form3: TForm3
   end
   inherited StringGrid: TStringGrid
     Top = 58
+    Width = 770
     Height = 101
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goTabs, goRowSelect, goThumbTracking, goFixedColClick, goFixedRowClick, goFixedHotTrack]
     TabOrder = 14
@@ -199,7 +211,7 @@ inherited Form3: TForm3
     AlignWithMargins = True
     Left = 3
     Top = 28
-    Width = 440
+    Width = 770
     Height = 24
     Align = alTop
     Font.Charset = DEFAULT_CHARSET
@@ -210,6 +222,7 @@ inherited Form3: TForm3
     ParentFont = False
     TabOrder = 15
     OnKeyUp = Edit1KeyUp
+    ExplicitWidth = 440
   end
   object Button1: TButton
     Left = 8
@@ -228,5 +241,41 @@ inherited Form3: TForm3
     Caption = '>> Exportar <<'
     TabOrder = 17
     OnClick = Button2Click
+  end
+  object grdTelefones: TStringGrid
+    AlignWithMargins = True
+    Left = 444
+    Top = 231
+    Width = 324
+    Height = 184
+    Color = clWhite
+    ColCount = 2
+    DrawingStyle = gdsGradient
+    RowCount = 2
+    GradientEndColor = clSilver
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goTabs, goRowSelect, goThumbTracking, goFixedColClick, goFixedRowClick, goFixedHotTrack]
+    TabOrder = 18
+    ColWidths = (
+      64
+      242)
+    RowHeights = (
+      24
+      25)
+  end
+  object edtTelefone: TEdit
+    Left = 444
+    Top = 184
+    Width = 261
+    Height = 21
+    TabOrder = 19
+  end
+  object btn1: TButton
+    Left = 711
+    Top = 182
+    Width = 57
+    Height = 25
+    Caption = ':: Add ::'
+    TabOrder = 20
+    OnClick = btn1Click
   end
 end
