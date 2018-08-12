@@ -39,7 +39,7 @@ begin
     line.Clear;
     for rttiProp in rttiTipo.GetProperties do
     begin
-      atributo := rttiProp.getAttribute(AFormato) as AFormato;
+      atributo := rttiProp.GetAttribute(AFormato) as AFormato;
       value := rttiProp.GetValue(objeto);
 
       case value.Kind of

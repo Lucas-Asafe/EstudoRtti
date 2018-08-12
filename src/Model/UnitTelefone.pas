@@ -15,7 +15,7 @@ type
     [ACampo('CODIGO'),
     ANotNull,
     APK,
-    AFormato(3)]
+    AFormato(10)]
     property Codigo: Integer read FCodigo write FCodigo;
     [ACampo('NUMERO'),
     ANotNull,

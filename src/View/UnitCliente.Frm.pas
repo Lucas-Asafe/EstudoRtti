@@ -7,7 +7,7 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls,
   JvExComCtrls, JvDateTimePicker, Data.DB, Vcl.ExtCtrls, Vcl.Grids, Vcl.DBGrids,
   UnitDataModule, UnitClass.PersistenciaClass, UnitClass.Validador, UnitCliente,
-  UnitClass.FactoryForm, UnitBase.Frm, UnitRTTIExport;
+  UnitClass.FactoryForm, UnitBase.Frm, UnitRTTIExport, UnitClass.Helper.StringGrid;
 
 type
   TfrmCadastroCliente = class(TFormBase)
@@ -67,25 +67,8 @@ uses
   UnitClass.FactoryClass;
 
 procedure TfrmCadastroCliente.atualizaGrid(selRow: Integer = 1);
-var
-  c: TCliente;
 begin
-  StringGrid.RowCount := FClientes.Count + 1;
-
-  StringGrid.Cols[0].Clear;
-  StringGrid.Cols[1].Clear;
-  StringGrid.Cols[2].Clear;
-
-  StringGrid.Rows[0].Add('Código');
-  StringGrid.Rows[0].Add('Nome');
-  StringGrid.Rows[0].Add('Documento');
-
-  for c in FClientes do
-  begin
-    StringGrid.Cols[0].AddObject(c.Codigo.ToString, c);
-    StringGrid.Cols[1].Add(c.Nome);
-    StringGrid.Cols[2].Add(c.Documento);
-  end;
+  StringGrid.SetObjectList<TCliente>(FClientes, ['ID', 'NOME', 'DOC']);
 
   if selRow >= StringGrid.RowCount then
     selRow := StringGrid.RowCount - 1;
@@ -93,7 +76,7 @@ begin
   StringGrid.Row := selRow;
 
   if FClientes.Count > 0 then
-    TFactoryForm.setFormFromClasse(Self, getRegistroFromClienteList(selRow));
+    TFactoryForm.setFormFromClasse(Self, StringGrid.SelectedItem);
 
 end;
 
@@ -208,7 +191,7 @@ end;
 
 procedure TfrmCadastroCliente.StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 begin
-  if StringGrid.Objects[0, ARow] <> nil then
+  if StringGrid.SelectedItem <> nil then
     TFactoryForm.setFormFromClasse(Self, getRegistroFromClienteList(ARow));
 end;
 

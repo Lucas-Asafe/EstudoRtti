@@ -101,10 +101,12 @@ inherited frmCadastroCliente: TfrmCadastroCliente
     Height = 72
     TabOrder = 10
     ExplicitTop = 408
+    ExplicitWidth = 776
     ExplicitHeight = 72
     inherited ListBox1: TListBox
       Width = 758
       Height = 54
+      ExplicitWidth = 758
       ExplicitHeight = 54
     end
   end
@@ -131,6 +133,7 @@ inherited frmCadastroCliente: TfrmCadastroCliente
     TabOrder = 14
     OnSelectCell = StringGridSelectCell
     ExplicitTop = 58
+    ExplicitWidth = 770
     ExplicitHeight = 101
     RowHeights = (
       24
@@ -222,7 +225,6 @@ inherited frmCadastroCliente: TfrmCadastroCliente
     ParentFont = False
     TabOrder = 15
     OnKeyUp = Edit1KeyUp
-    ExplicitWidth = 440
   end
   object Button1: TButton
     Left = 8

@@ -3,7 +3,7 @@ unit UnitCliente;
 interface
 
 uses
-  UnitClass.CustomAttributes, System.Generics.Collections, Data.DB;
+  UnitClass.CustomAttributes, System.Generics.Collections, Data.DB, UnitTelefone;
 
 type
   [ATabela('CLNT')]
@@ -17,17 +17,19 @@ type
     FDataNascimento: TDate;
     FDataCadastro: TDate;
     FCredito: Real;
+    FTelefones: TTelefones;
+    procedure SetTelefones(const Value: TTelefones);
   public
-    [ACampo('ID'),
+    [ACampo('ID', 'Código'),
     ANotNull,
     APK,
-    AFormato(3)]
+    AFormato(10)]
     property Codigo: Integer read FCodigo write FCodigo;
-    [ACampo('NOME'),
+    [ACampo('NOME', 'Nome'),
     ANotNull,
     AFormato(40)]
     property Nome: string read FNome write FNome;
-    [ACampo('DOC'),
+    [ACampo('DOC', 'Documento'),
     ANotNull,
     AFormato(14)]
     property Documento: string read FDocumento write FDocumento;
@@ -49,11 +51,25 @@ type
     [ACampo('CREDITO'),
     AFormato(10, 2)]
     property Credito: Real read FCredito write FCredito;
+    [ADetalhe]
+    property Telefones: TTelefones read FTelefones write SetTelefones;
   end;
 
   TClientes = TObjectList<TCliente>;
 
 implementation
+
+uses
+  System.SysUtils;
+
+{ TCliente }
+
+procedure TCliente.SetTelefones(const Value: TTelefones);
+begin
+  if Assigned(FTelefones) then
+    FreeAndNil(FTelefones);
+  FTelefones := Value;
+end;
 
 end.
 

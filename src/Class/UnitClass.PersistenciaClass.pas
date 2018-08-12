@@ -30,6 +30,7 @@ type
     function getValores(classe: TObject): string;
     function getCampoValor(classe: TObject): string;
     function getValueFromProp(Value: TValue): string;
+    function GetValueFK(classe: TObject): string;
     procedure CommitTransacao;
     procedure setFieldsDataSet(Dataset: TDataSet; classe: TObject);
   public
@@ -45,9 +46,6 @@ type
     function GetListaDoDataSet<T: class, constructor>(Dataset: TDataSet): TObjectList<T>;
     constructor Create;
   end;
-
-var
-  DaoGenerico: TPersistenciaClass;
 
 implementation
 
@@ -104,7 +102,7 @@ begin
     FConnection.ExecSQL(FSQL.Replace('"', '', [rfReplaceAll]));
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
-      if (RttiProp.getAttribute(ADetalhe) <> nil) then
+      if (RttiProp.GetAttribute(ADetalhe) <> nil) then
         ExecuteProcPersistencia(TObjectList<TObject>(RttiProp.GetValue(classe).AsObject), Insere);
 
     CommitTransacao;
@@ -132,7 +130,7 @@ begin
     FConnection.ExecSQL(FSQL.Replace('"', '', [rfReplaceAll]));
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
-      if (RttiProp.getAttribute(ADetalhe) <> nil) then
+      if (RttiProp.GetAttribute(ADetalhe) <> nil) then
         ExecuteProcPersistencia(TObjectList<TObject>(RttiProp.GetValue(classe).AsObject), Altere);
 
     CommitTransacao;
@@ -154,7 +152,7 @@ begin
     FConnection.ExecSQL(FSQL.Replace('"', '', [rfReplaceAll]));
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
-      if (RttiProp.getAttribute(ADetalhe) <> nil) then
+      if (RttiProp.GetAttribute(ADetalhe) <> nil) then
         ExecuteProcPersistencia(TObjectList<TObject>(RttiProp.GetValue(classe).AsObject), Delete);
 
     CommitTransacao;
@@ -178,7 +176,7 @@ var
 begin
   objeto := T.Create;
   FTabela := getNomeTabela(objeto);
-  LCampoValor := ACampo(GetPKField(objeto).getAttribute(ACampo)).NomeDB + ' = '
+  LCampoValor := ACampo(GetPKField(objeto).GetAttribute(ACampo)).NomeDB + ' = '
     + QuotedStr(PValorChave);
 
   FSqlQry.Close;
@@ -234,12 +232,12 @@ end;
 
 function TPersistenciaClass.GetPKField(classe: TObject): TRttiProperty;
 begin
+  Result := nil;
   RttiTipo := RttiContexto.GetType(classe.ClassType);
-  result := nil;
 
   for RttiProp in RttiTipo.GetProperties do
   begin
-    if RttiProp.getAttribute(APK) <> nil then
+    if RttiProp.isChavePrimaria then
       Exit(RttiProp)
   end;
 end;
@@ -250,27 +248,27 @@ var
 begin
   case value.Kind of
     tkUString:
-      result := value.ToString.QuotedString;
+      Result := value.ToString.QuotedString;
     tkInteger:
-      result := value.ToString;
+      Result := value.ToString;
     tkFloat:
       begin
         if (value.TypeInfo = TypeInfo(Real)) or (value.TypeInfo = TypeInfo(Double)) then
         begin
           f := TFormatSettings.Create();
           f.DecimalSeparator := '.';
-          result := value.AsExtended.ToString(f);
+          Result := value.AsExtended.ToString(f);
         end;
 
         if value.TypeInfo = TypeInfo(TDate) then
-          result := FormatDateTime('d-MMM-yyyy', value.AsExtended,
+          Result := FormatDateTime('d-MMM-yyyy', value.AsExtended,
             TFormatSettings.Create('en-US')).QuotedString;
 
         if value.TypeInfo = TypeInfo(TTime) then
-          result := FormatDateTime('hh:mm:ss', value.AsExtended).QuotedString;
+          Result := FormatDateTime('hh:mm:ss', value.AsExtended).QuotedString;
 
         if value.TypeInfo = TypeInfo(TDateTime) then
-          result := FormatDateTime('d-MMM-yyyy hh:mm:ss', value.AsExtended,
+          Result := FormatDateTime('d-MMM-yyyy hh:mm:ss', value.AsExtended,
             TFormatSettings.Create('en-US')).QuotedString;
       end;
   end;
@@ -280,31 +278,26 @@ function TPersistenciaClass.getValores(classe: TObject): string;
 var
   s: TStringList;
   f: TFormatSettings;
-  valorFK: string;
 begin
   s := TStringList.Create;
 
   RttiTipo := RttiContexto.GetType(classe.ClassType);
 
   for RttiProp in RttiTipo.GetProperties do
-    if (RttiProp.getAttribute(ASomenteLeitura) = nil) and (RttiProp.getAttribute
-      (ADetalhe) = nil) and (RttiProp.getAttribute(ACampo) <> nil) then
-      if (RttiProp.getAttribute(AFK) <> nil) then
-      begin
-        valorFK := getValueFromProp(GetPKField(RttiProp.GetValue(classe).AsObject).GetValue
-          (RttiProp.GetValue(classe).AsObject));
-        if valorFK = '' then
-          valorFK := getValueFromProp(GetPKField(GetPKField(RttiProp.GetValue(classe).AsObject).GetValue
-            (RttiProp.GetValue(RttiProp.GetValue(classe).AsObject).AsObject).AsObject).GetValue
-            (RttiProp.GetValue(RttiProp.GetValue(classe).AsObject).AsObject));
-        s.Add(valorFK);
-      end
-      else
-        s.Add(getValueFromProp(RttiProp.GetValue(classe)));
+  begin
+    if RttiProp.isCampoSimples then
+    begin
+      s.Add(getValueFromProp(RttiProp.GetValue(classe)));
+    end
+    else if (RttiProp.isChaveEstrangeira) then
+    begin
+      s.Add(GetValueFK(classe));
+    end;
+  end;
 
   s.StrictDelimiter := True;
   s.Delimiter := ',';
-  result := s.DelimitedText;
+  Result := s.DelimitedText;
 end;
 
 procedure TPersistenciaClass.setFieldsDataSet(DataSet: TDataSet; classe: TObject);
@@ -314,7 +307,7 @@ begin
   RttiTipo := RttiContexto.GetType(classe.ClassType);
   for RttiProp in RttiTipo.GetProperties do
   begin
-    Atributo := RttiProp.getAttribute(ACampo);
+    Atributo := RttiProp.GetAttribute(ACampo);
     nomeField := ACampo(Atributo).NomeDB;
 
     case RttiProp.GetValue(classe).Kind of
@@ -346,13 +339,13 @@ begin
   RttiTipo := RttiContexto.GetType(classe.ClassType);
 
   for RttiProp in RttiTipo.GetProperties do
-    if (RttiProp.getAttribute(ASomenteLeitura) = nil) and (RttiProp.getAttribute
-      (ADetalhe) = nil) and (RttiProp.getAttribute(ACampo) <> nil) then
-      s.Add(ACampo(RttiProp.getAttribute(ACampo)).NomeDB);
+    if (RttiProp.GetAttribute(ASomenteLeitura) = nil) and (RttiProp.GetAttribute
+      (ADetalhe) = nil) and (RttiProp.GetAttribute(ACampo) <> nil) then
+      s.Add(ACampo(RttiProp.GetAttribute(ACampo)).NomeDB);
 
   s.StrictDelimiter := True;
   s.Delimiter := ',';
-  result := s.DelimitedText;
+  Result := s.DelimitedText;
 end;
 
 function TPersistenciaClass.getCampoValor(classe: TObject): string;
@@ -367,10 +360,10 @@ begin
 
   for RttiProp in RttiTipo.GetProperties do
   begin
-    if (RttiProp.getAttribute(ASomenteLeitura) = nil) and (RttiProp.getAttribute
+    if (RttiProp.GetAttribute(ASomenteLeitura) = nil) and (RttiProp.GetAttribute
       (ADetalhe) = nil) then
     begin
-      campo := ACampo(RttiProp.getAttribute(ACampo)).NomeDB;
+      campo := ACampo(RttiProp.GetAttribute(ACampo)).NomeDB;
       valor := getValueFromProp(RttiProp.GetValue(classe));
       s.Add(campo + '=' + valor);
     end;
@@ -378,17 +371,17 @@ begin
 
   s.StrictDelimiter := True;
   s.Delimiter := ',';
-  result := s.DelimitedText;
+  Result := s.DelimitedText;
 end;
 
 function TPersistenciaClass.getFKField(classe: TObject): TObjectList<TRttiProperty>;
 begin
   RttiTipo := RttiContexto.GetType(classe.ClassType);
-  result := nil;
+  Result := nil;
 
   for RttiProp in RttiTipo.GetProperties do
   begin
-    if RttiProp.getAttribute(AFK) <> nil then
+    if RttiProp.GetAttribute(AFK) <> nil then
       Result.Add(RttiProp)
   end;
   Exit;
@@ -398,20 +391,20 @@ function TPersistenciaClass.getIndiceFK(classe: TObject): TDictionary<string, st
 begin
   Result := TDictionary<string, string>.Create;
   for RttiProp in getFKField(classe) do
-    Result.Add(ACampo(RttiProp.getAttribute(ACampo)).NomeDB, RttiProp.GetValue(classe).ToString);
+    Result.Add(ACampo(RttiProp.GetAttribute(ACampo)).NomeDB, RttiProp.GetValue(classe).ToString);
 end;
 
 function TPersistenciaClass.getIndicePK(classe: TObject): string;
 begin
   RttiProp := GetPKField(classe);
-  result := ACampo(RttiProp.getAttribute(ACampo)).NomeDB + '=' + RttiProp.GetValue(classe).ToString;
+  Result := ACampo(RttiProp.GetAttribute(ACampo)).NomeDB + '=' + RttiProp.GetValue(classe).ToString;
 end;
 
 function TPersistenciaClass.getNomeTabela(classe: TObject): string;
 begin
   try
     RttiTipo := RttiContexto.GetType(classe.ClassType);
-    result := ATabela(RttiTipo.getAttribute(ATabela)).NomeTabela;
+    Result := ATabela(RttiTipo.getAttribute(ATabela)).NomeTabela;
   except
     raise EPersistenciaClass.Create('Erro ao tentar pegar nome da tabela.' + #13
       + 'Verifique a classe : ' + classe.ClassName + '.');
@@ -428,17 +421,17 @@ begin
   try
     for RttiProp in RttiTipo.GetProperties do
     begin
-      if (RttiProp.getAttribute(ASomenteLeitura) = nil) and (RttiProp.getAttribute
-        (ADetalhe) = nil) and (RttiProp.getAttribute(ACampo) <> nil) and (RttiProp.GetAttribute
+      if (RttiProp.GetAttribute(ASomenteLeitura) = nil) and (RttiProp.GetAttribute
+        (ADetalhe) = nil) and (RttiProp.GetAttribute(ACampo) <> nil) and (RttiProp.GetAttribute
         (AFK) = nil) then
       begin
-        Atributo := RttiProp.getAttribute(ACampo);
+        Atributo := RttiProp.GetAttribute(ACampo);
         nomeField := ACampo(Atributo).NomeDB;
 
         Value := RttiProp.GetValue(classe);
         case Value.Kind of
           tkUString:
-            if RttiProp.getAttribute(ALogico) <> nil then
+            if RttiProp.GetAttribute(ALogico) <> nil then
               Value := GetLogico(Dataset.FieldByName(nomeField).AsString)
             else
               Value := Dataset.FieldByName(nomeField).AsString;
@@ -465,6 +458,18 @@ begin
       ShowMessage('Erro: ' + E.Message + ' - ' + E.ClassName + #13 + nomeField +
         ' - ' + classe.ClassName);
   end;
+end;
+
+function TPersistenciaClass.GetValueFK(classe: TObject): string;
+var
+  ValueFK: TValue;
+begin
+  ValueFK := GetPKField(RttiProp.GetValue(classe).AsObject);
+
+  if TRttiType(ValueFK.AsObject).isTabela then
+    GetValueFK(ValueFK.AsObject)
+  else
+    Result := getValueFromProp(ValueFK);
 end;
 
 end.
