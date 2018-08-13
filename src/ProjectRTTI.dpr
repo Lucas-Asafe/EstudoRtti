@@ -17,7 +17,8 @@ uses
   UnitClass.Helper.RTTI in 'Class\Helper\UnitClass.Helper.RTTI.pas',
   Utils.Directory in 'Utils\Utils.Directory.pas',
   UnitTelefone in 'Model\UnitTelefone.pas',
-  UnitClass.Helper.StringGrid in 'Class\Helper\UnitClass.Helper.StringGrid.pas';
+  UnitClass.Helper.StringGrid in 'Class\Helper\UnitClass.Helper.StringGrid.pas',
+  UnitClass.Helper.Form in 'Class\Helper\UnitClass.Helper.Form.pas';
 
 {$R *.res}
 
