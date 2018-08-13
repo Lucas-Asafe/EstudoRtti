@@ -11,6 +11,7 @@ type
   TRttiPropertyMelhorado = class helper for TRttiProperty
   public
     function GetAttribute(CustomAttribute: TCustomAttributeClass): TCustomAttribute;
+    function GetFKValue(classe: TObject): TValue;
     function isCampoSimples: Boolean;
     function isCampo: Boolean;
     function isSomenteLeitura: Boolean;
@@ -22,6 +23,8 @@ type
   TRttiTypeMelhorado = class helper for TRttiType
   public
     function GetAttribute(CustomAttribute: TCustomAttributeClass): TCustomAttribute;
+    function GetPropertyFromAttribute(CustomAttribute: TCustomAttributeClass): TRttiProperty;
+    function GetPKField: TRttiProperty;
     function isTabela: Boolean;
   end;
 
@@ -38,8 +41,22 @@ begin
   for atributo in GetAttributes do
   begin
     if atributo is CustomAttribute then
-      Exit(atributo)
+    begin
+      Exit(atributo);
+    end;
   end;
+end;
+
+function TRttiPropertyMelhorado.GetFKValue(classe: TObject): TValue;
+var
+  ValueFK: TValue;
+begin
+  ValueFK := TRttiContext.Create.GetType(GetValue(classe).AsClass).GetPKField;
+
+  if TRttiType(ValueFK.AsObject).isTabela then
+    GetFKValue(ValueFK.AsObject)
+  else
+    Result := ValueFK;
 end;
 
 function TRttiPropertyMelhorado.isCampo: Boolean;
@@ -94,9 +111,29 @@ begin
   for atributo in GetAttributes do
   begin
     if atributo is CustomAttribute then
-      Exit(atributo)
+    begin
+      Exit(atributo);
+    end;
   end;
+end;
 
+function TRttiTypeMelhorado.GetPKField: TRttiProperty;
+begin
+  Result := GetPropertyFromAttribute(APK);
+end;
+
+function TRttiTypeMelhorado.GetPropertyFromAttribute(CustomAttribute:
+  TCustomAttributeClass): TRttiProperty;
+var
+  RttiProp: TRttiProperty;
+begin
+  for RttiProp in GetProperties do
+  begin
+    if RttiProp.GetAttribute(CustomAttribute) <> nil then
+    begin
+      Exit(RttiProp);
+    end;
+  end;
 end;
 
 function TRttiTypeMelhorado.isTabela: Boolean;

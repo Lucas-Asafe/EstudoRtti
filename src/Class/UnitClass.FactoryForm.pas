@@ -14,7 +14,7 @@ type
 implementation
 
 uses
-  Vcl.StdCtrls, UnitClass.Helper.Form;
+  Vcl.StdCtrls, UnitClass.Helper.Form, Vcl.Grids, System.Generics.Collections;
 
 { TFactoryForm }
 
@@ -27,6 +27,7 @@ class procedure TFactoryForm.setFormFromClasse(Form: TForm; classe: TObject);
 var
   Componente: TComponent;
   I: Integer;
+  O: TObject;
 begin
   if not Assigned(classe) then
   begin
@@ -52,6 +53,15 @@ begin
 
         if Componente is TDateTimePicker then
           TDateTimePicker(Componente).Date := RttiProp.GetValue(classe).AsExtended;
+
+        if Componente is TStringGrid then
+        begin
+          for O in TObjectList<TObject>(RttiProp.GetValue(classe).AsObject) do
+          begin
+//            TStringGrid(Componente).SetObjectList<TTelefone>(FClientes, ['ID', 'NOME', 'DOC'])
+//            getClasseDoForm(Formulario, O);
+          end;
+        end;
       end;
     end;
   end;

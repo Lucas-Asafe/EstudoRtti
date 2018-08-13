@@ -22,19 +22,15 @@ type
     FSqlQry: TFDQuery;
     FTabela: string;
     RttiContexto: TRttiContext;
-    function getFKField(classe: TObject): TObjectList<TRttiProperty>;
     function getNomeTabela(classe: TObject): string;
     function getIndicePK(classe: TObject): string;
-    function getIndiceFK(classe: TObject): TDictionary<string, string>;
     function getCampos(classe: TObject): string;
     function getValores(classe: TObject): string;
     function getCampoValor(classe: TObject): string;
     function getValueFromProp(Value: TValue): string;
-    function GetValueFK(classe: TObject): string;
     procedure CommitTransacao;
     procedure setFieldsDataSet(Dataset: TDataSet; classe: TObject);
   public
-    function GetPKField(classe: TObject): TRttiProperty;
     procedure GetValoresFromDataset(Dataset: TDataSet; classe: TObject);
     procedure Insere(classe: TObject; UsarTransacao: Boolean = False);
     procedure Altere(classe: TObject; UsarTransacao: Boolean = False);
@@ -152,7 +148,7 @@ begin
     FConnection.ExecSQL(FSQL.Replace('"', '', [rfReplaceAll]));
 
     for RttiProp in RttiContexto.GetType(classe.ClassType).GetProperties do
-      if (RttiProp.GetAttribute(ADetalhe) <> nil) then
+      if (RttiProp.isDetalhe) then
         ExecuteProcPersistencia(TObjectList<TObject>(RttiProp.GetValue(classe).AsObject), Delete);
 
     CommitTransacao;
@@ -166,8 +162,9 @@ procedure TPersistenciaClass.ExecuteProcPersistencia(PLista: TObjectList<TObject
 var
   objeto: TObject;
 begin
-  for objeto in PLista do
-    ProcPersistencia(objeto);
+  if Assigned(PLista) then
+    for objeto in PLista do
+      ProcPersistencia(objeto);
 end;
 
 procedure TPersistenciaClass.Get<T>(out objeto: T; PValorChave: Variant);
@@ -176,8 +173,8 @@ var
 begin
   objeto := T.Create;
   FTabela := getNomeTabela(objeto);
-  LCampoValor := ACampo(GetPKField(objeto).GetAttribute(ACampo)).NomeDB + ' = '
-    + QuotedStr(PValorChave);
+  LCampoValor := ACampo(RttiContexto.GetType(objeto.ClassType).GetPKField.GetAttribute
+    (ACampo)).NomeDB + ' = ' + QuotedStr(PValorChave);
 
   FSqlQry.Close;
   FSqlQry.SQL.Clear;
@@ -230,18 +227,6 @@ begin
   end;
 end;
 
-function TPersistenciaClass.GetPKField(classe: TObject): TRttiProperty;
-begin
-  Result := nil;
-  RttiTipo := RttiContexto.GetType(classe.ClassType);
-
-  for RttiProp in RttiTipo.GetProperties do
-  begin
-    if RttiProp.isChavePrimaria then
-      Exit(RttiProp)
-  end;
-end;
-
 function TPersistenciaClass.getValueFromProp(value: TValue): string;
 var
   f: TFormatSettings;
@@ -291,7 +276,7 @@ begin
     end
     else if (RttiProp.isChaveEstrangeira) then
     begin
-      s.Add(GetValueFK(classe));
+      s.Add(getValueFromProp(RttiProp.GetFKValue(classe)));
     end;
   end;
 
@@ -374,29 +359,9 @@ begin
   Result := s.DelimitedText;
 end;
 
-function TPersistenciaClass.getFKField(classe: TObject): TObjectList<TRttiProperty>;
-begin
-  RttiTipo := RttiContexto.GetType(classe.ClassType);
-  Result := nil;
-
-  for RttiProp in RttiTipo.GetProperties do
-  begin
-    if RttiProp.GetAttribute(AFK) <> nil then
-      Result.Add(RttiProp)
-  end;
-  Exit;
-end;
-
-function TPersistenciaClass.getIndiceFK(classe: TObject): TDictionary<string, string>;
-begin
-  Result := TDictionary<string, string>.Create;
-  for RttiProp in getFKField(classe) do
-    Result.Add(ACampo(RttiProp.GetAttribute(ACampo)).NomeDB, RttiProp.GetValue(classe).ToString);
-end;
-
 function TPersistenciaClass.getIndicePK(classe: TObject): string;
 begin
-  RttiProp := GetPKField(classe);
+  RttiProp := RttiContexto.GetType(classe.ClassType).GetPKField;
   Result := ACampo(RttiProp.GetAttribute(ACampo)).NomeDB + '=' + RttiProp.GetValue(classe).ToString;
 end;
 
@@ -458,18 +423,6 @@ begin
       ShowMessage('Erro: ' + E.Message + ' - ' + E.ClassName + #13 + nomeField +
         ' - ' + classe.ClassName);
   end;
-end;
-
-function TPersistenciaClass.GetValueFK(classe: TObject): string;
-var
-  ValueFK: TValue;
-begin
-  ValueFK := GetPKField(RttiProp.GetValue(classe).AsObject);
-
-  if TRttiType(ValueFK.AsObject).isTabela then
-    GetValueFK(ValueFK.AsObject)
-  else
-    Result := getValueFromProp(ValueFK);
 end;
 
 end.

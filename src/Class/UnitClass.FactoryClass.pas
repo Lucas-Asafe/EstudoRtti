@@ -4,12 +4,13 @@ interface
 
 uses
   Vcl.Forms, DB, System.Classes, System.Rtti, sysUtils, Vcl.StdCtrls,
-  JvDateTimePicker;
+  JvDateTimePicker, System.Generics.Collections, Vcl.Grids;
 
 type
   TFactoryClass = class
   private
-    class function getTextFromComponente(componente: TComponent): string;
+    class function getTextFromComponente(Componente: TComponent): string;
+    class function GetListaFromComponente(Componente: TComponent): TObjectList<TObject>;
   public
     class procedure getClasseDoForm(Formulario: TForm; classe: TObject);
   end;
@@ -17,17 +18,16 @@ type
 implementation
 
 uses
-  Math;
+  Math, UnitClass.Helper.RTTI;
 
+class procedure TFactoryClass.getClasseDoForm(Formulario: TForm; classe: TObject);
 var
   RttiContexto: TRttiContext;
   RttiTipo: TRttiType;
   RttiProp: TRttiProperty;
   Value: TValue;
   Componente: TComponent;
-  I: integer;
-
-class procedure TFactoryClass.getClasseDoForm(Formulario: TForm; classe: TObject);
+  I: Integer;
 begin
   RttiContexto := TRttiContext.Create;
   RttiTipo := RttiContexto.GetType(classe.ClassType);
@@ -35,20 +35,46 @@ begin
   begin
     for I := 0 to Formulario.ComponentCount - 1 do
     begin
-      componente := Formulario.Components[I];
-      if string(componente.Name).contains(RttiProp.Name) then
-      begin
-        case RttiProp.GetValue(classe).Kind of
-          tkUString:
-            Value := getTextFromComponente(componente);
-          tkInteger:
-            Value := strToInt(getTextFromComponente(componente));
-          tkFloat:
-            Value := strToFloat(getTextFromComponente(componente));
-        end;
+      Componente := Formulario.Components[I];
 
-        RttiProp.SetValue(classe, Value);
+      if not string(Componente.Name).contains(RttiProp.Name) then
+        Continue;
+
+      case RttiProp.GetValue(classe).Kind of
+        tkUString:
+          Value := getTextFromComponente(Componente);
+        tkInteger:
+          Value := StrToInt(getTextFromComponente(Componente));
+        tkFloat:
+          Value := StrToFloat(getTextFromComponente(Componente));
+        tkClass:
+          begin
+            if RttiProp.isChaveEstrangeira then
+            begin
+//              Value := Get<TObjetoGenerico>(RttiProp.GetFKValue(classe).AsString);
+            end
+            else if RttiProp.isDetalhe then
+            begin
+              Value := GetListaFromComponente(Componente);
+            end;
+          end;
       end;
+
+      RttiProp.SetValue(classe, Value);
+    end;
+  end;
+end;
+
+class function TFactoryClass.GetListaFromComponente(Componente: TComponent): TObjectList<TObject>;
+var
+  I: Integer;
+begin
+  Result := TObjectList<TObject>.Create;
+  if Componente is TStringGrid then
+  begin
+    for I := 1 to TStringGrid(Componente).RowCount - 1 do
+    begin
+      Result.Add(TStringGrid(Componente).Objects[0, I]);
     end;
   end;
 end;
@@ -67,7 +93,7 @@ begin
     Exit((componente as TComboBox).Text);
 
   if componente is TJvDateTimePicker then
-    Exit(floatToStr((componente as TJvDateTimePicker).Date));
+    Exit(FloatToStr((componente as TJvDateTimePicker).Date));
 end;
 
 end.
