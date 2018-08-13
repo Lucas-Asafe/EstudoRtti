@@ -14,41 +14,48 @@ type
 implementation
 
 uses
-  Vcl.StdCtrls;
+  Vcl.StdCtrls, UnitClass.Helper.Form;
 
 { TFactoryForm }
 
 var
-  RttiContexto : TRttiContext;
-  RttiTipo     : TRttiType;
-  RttiProp     : TRttiProperty;
-  Value        : TValue;
-  Componente    : TComponent;
-  I: integer;
+  RttiContexto: TRttiContext;
+  RttiTipo: TRttiType;
+  RttiProp: TRttiProperty;
 
 class procedure TFactoryForm.setFormFromClasse(Form: TForm; classe: TObject);
+var
+  Componente: TComponent;
+  I: Integer;
 begin
-  RttiContexto:=TRttiContext.Create;
-  RttiTipo    :=RttiContexto.GetType(Classe.ClassType);
+  if not Assigned(classe) then
+  begin
+    Form.ClearDataComponents;
+    Exit;
+  end;
+
+  RttiContexto := TRttiContext.Create;
+  RttiTipo := RttiContexto.GetType(classe.ClassType);
 
   for RttiProp in RttiTipo.GetProperties do
   begin
-    for I:=0 to Form.ComponentCount-1 do
+    for I := 0 to Form.ComponentCount - 1 do
     begin
-      componente:=Form.Components[I];
-      if String(componente.Name).Contains(RttiProp.Name) then
+      Componente := Form.Components[I];
+      if string(Componente.Name).contains(RttiProp.Name) then
       begin
         if Componente is TEdit then
-          (componente as TEdit).text:=RttiProp.GetValue(classe).ToString;
+          TEdit(Componente).text := RttiProp.GetValue(classe).toString;
 
         if Componente is TComboBox then
-          (Componente as TComboBox).Text:= RttiProp.GetValue(classe).ToString;
+          TComboBox(Componente).Text := RttiProp.GetValue(classe).toString;
 
         if Componente is TDateTimePicker then
-          (Componente as TDateTimePicker).Date:= RttiProp.GetValue(classe).AsExtended;
+          TDateTimePicker(Componente).Date := RttiProp.GetValue(classe).AsExtended;
       end;
     end;
   end;
 end;
 
 end.
+

@@ -50,8 +50,7 @@ type
   private
     FClientes: TClientes;
     FPercistenceClass: TPersistenciaClass;
-    procedure atualizaGrid(selRow: Integer = 1);
-    function getRegistroFromClienteList(LinhaGrid: Integer): TCliente;
+    procedure AtualizarGridCliente;
   public
     property Clientes: TClientes read FClientes write FClientes;
   end;
@@ -66,23 +65,12 @@ implementation
 uses
   UnitClass.FactoryClass;
 
-procedure TfrmCadastroCliente.atualizaGrid(selRow: Integer = 1);
+procedure TfrmCadastroCliente.AtualizarGridCliente;
 begin
   StringGrid.SetObjectList<TCliente>(FClientes, ['ID', 'NOME', 'DOC']);
 
-  if selRow >= StringGrid.RowCount then
-    selRow := StringGrid.RowCount - 1;
-
-  StringGrid.Row := selRow;
-
   if FClientes.Count > 0 then
     TFactoryForm.setFormFromClasse(Self, StringGrid.SelectedItem);
-
-end;
-
-function TfrmCadastroCliente.getRegistroFromClienteList(LinhaGrid: Integer): TCliente;
-begin
-  Result := TCliente(StringGrid.Objects[0, LinhaGrid]);
 end;
 
 procedure TfrmCadastroCliente.btn1Click(Sender: TObject);
@@ -94,7 +82,7 @@ end;
 procedure TfrmCadastroCliente.btnCancelarClick(Sender: TObject);
 begin
   inherited;
-  TFactoryForm.setFormFromClasse(Self, getRegistroFromClienteList(StringGrid.Row));
+  TFactoryForm.setFormFromClasse(Self, TCliente(StringGrid.SelectedItem));
 end;
 
 procedure TfrmCadastroCliente.btnEditarClick(Sender: TObject);
@@ -107,14 +95,12 @@ end;
 procedure TfrmCadastroCliente.btnExcluirClick(Sender: TObject);
 var
   c: TCliente;
-  i: Integer;
 begin
   inherited;
-  i := StringGrid.Row;
-  c := getRegistroFromClienteList(i);
+  c := TCliente(StringGrid.SelectedItem);
   FPercistenceClass.delete(c);
   FClientes.Remove(c);
-  atualizaGrid(i);
+  AtualizarGridCliente;
 end;
 
 procedure TfrmCadastroCliente.btnNovoClick(Sender: TObject);
@@ -149,7 +135,7 @@ begin
   end;
 
   FPercistenceClass.GetLista<TCliente>(FClientes);
-  atualizaGrid(StringGrid.Row);
+  AtualizarGridCliente;
 
   inherited;
 end;
@@ -172,7 +158,7 @@ begin
   if Key = VK_RETURN then
   begin
     FPercistenceClass.GetLista<TCliente>(FClientes, Edit1.Text);
-    atualizaGrid();
+    AtualizarGridCliente();
   end;
 end;
 
@@ -186,13 +172,14 @@ procedure TfrmCadastroCliente.FormShow(Sender: TObject);
 begin
   inherited;
   FPercistenceClass.GetLista<TCliente>(FClientes);
-  atualizaGrid;
+  AtualizarGridCliente;
 end;
 
-procedure TfrmCadastroCliente.StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+procedure TfrmCadastroCliente.StringGridSelectCell(Sender: TObject; ACol, ARow:
+  Integer; var CanSelect: Boolean);
 begin
   if StringGrid.SelectedItem <> nil then
-    TFactoryForm.setFormFromClasse(Self, getRegistroFromClienteList(ARow));
+    TFactoryForm.setFormFromClasse(Self, TCliente(StringGrid.SelectedItem));
 end;
 
 end.
